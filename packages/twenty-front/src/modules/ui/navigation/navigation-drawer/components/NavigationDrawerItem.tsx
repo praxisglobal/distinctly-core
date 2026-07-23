@@ -13,7 +13,11 @@ import { isNonEmptyString } from '@sniptt/guards';
 import { type JSX, type ReactNode, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { isDefined } from 'twenty-shared/utils';
-import { Pill, TintedIconTile } from 'twenty-ui/data-display';
+import {
+  Pill,
+  StyledTintedIconTileContainer,
+  getIconTileColorShades,
+} from 'twenty-ui/data-display';
 import { type IconComponent, type TablerIconsProps } from 'twenty-ui/icon';
 import {
   AppTooltip,
@@ -389,7 +393,21 @@ export const NavigationDrawerItem = ({
           {Icon &&
             (isNonEmptyString(distinctlyIconColor) ? (
               <StyledIcon>
-                <TintedIconTile Icon={Icon} color={distinctlyIconColor} size={20} />
+                <StyledTintedIconTileContainer
+                  $backgroundColor={
+                    getIconTileColorShades(distinctlyIconColor).backgroundColor
+                  }
+                  $borderColor={
+                    getIconTileColorShades(distinctlyIconColor).borderColor
+                  }
+                  $dimension="36px"
+                >
+                  <Icon
+                    size={18}
+                    stroke={2}
+                    color={getIconTileColorShades(distinctlyIconColor).iconColor}
+                  />
+                </StyledTintedIconTileContainer>
               </StyledIcon>
             ) : withIconBackground ? (
               <StyledIcon>
