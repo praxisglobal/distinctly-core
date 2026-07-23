@@ -30,7 +30,8 @@ Rebase this branch onto each new upstream tag; keep patches minimal. Pin the ima
 - **v1 (accent → teal):** `SecondaryColors{Light,Dark}.ts` blue1-12 and `Accent{Light,Dark}.ts`
   accent1-12 retargeted from Radix indigo → Radix teal. This recolors the active nav item, CTAs
   and accents to teal (brand `#23C7C8`). Low risk; validates the fork→CI-build→staging loop.
-- **NEXT (sidebar → navy):** scope `NavigationDrawer.tsx` to dark colors on a navy `#071222`
+- **v2 (navy sidebar) DONE:** NavigationDrawer outer container bg #071222 + `dark` class (scopes theme-dark.css vars → light text/icons). Two-tone shell. Pushed 0aaa784.
+- **NEXT (logo header size + nav chrome):** scope `NavigationDrawer.tsx` to dark colors on a navy `#071222`
   background (dark sidebar + light content, two-tone shell). Needs the CI-build + staging visual
   loop to iterate — text/icon legibility on navy requires overriding the sidebar's font/icon
   colors, not just the background. Do AFTER the accent build proves the pipeline.
