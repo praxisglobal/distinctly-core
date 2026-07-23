@@ -40,6 +40,24 @@ export type NavigationDrawerItemModifier =
   | 'new'
   | { keyboard: string[] };
 
+const DISTINCTLY_MODULE_META: Record<string, { subtitle: string; color: string }> = {
+  'Today': { subtitle: 'Dashboard', color: '#3B82F6' },
+  'Accounts': { subtitle: 'Manage accounts', color: '#3B82F6' },
+  'Sales': { subtitle: 'Manage sales', color: '#23C7C8' },
+  'Members': { subtitle: 'Manage members', color: '#22C55E' },
+  'Tickets': { subtitle: 'Support tickets', color: '#A855F7' },
+  'Accounting': { subtitle: 'Financials', color: '#23C7C8' },
+  'Delivery': { subtitle: 'Shipments & tracking', color: '#F59E0B' },
+  'Reports': { subtitle: 'Analytics & reports', color: '#A855F7' },
+  'Automation': { subtitle: 'Workflows', color: '#3B82F6' },
+  'Marketing': { subtitle: 'Campaigns', color: '#EF4444' },
+  'Websites': { subtitle: 'Manage sites', color: '#3B82F6' },
+  'Products': { subtitle: 'Manage products', color: '#8B5CF6' },
+  'Projects': { subtitle: 'Project management', color: '#22C55E' },
+  'Support': { subtitle: 'Help & resources', color: '#EF4444' },
+  'Revenue Dashboard': { subtitle: 'Live revenue', color: '#23C7C8' },
+};
+
 export type NavigationDrawerItemProps = {
   className?: string;
   label: string;
@@ -83,7 +101,9 @@ type StyledItemProps = Pick<
 const StyledItem = styled.button<StyledItemProps>`
   align-items: center;
   background: ${({ active }) =>
-    active ? themeCssVariables.background.transparent.light : 'transparent'};
+    active ? 'rgba(35, 199, 200, 0.14)' : 'transparent'};
+  box-shadow: ${({ active }) =>
+    active ? 'inset 3px 0 0 #23c7c8' : 'none'};
   border: ${({ isSelectedInEditMode }) =>
     isSelectedInEditMode
       ? `1px solid ${themeCssVariables.color.blue}`
@@ -269,6 +289,10 @@ export const NavigationDrawerItem = ({
   variant = 'default',
 }: NavigationDrawerItemProps) => {
   const { theme } = useContext(ThemeContext);
+  // distinctly branding: subtitle + icon color per module (shell cosmetics, fork-only)
+  const distinctlyMeta = DISTINCTLY_MODULE_META[label];
+  const distinctlySecondaryLabel = secondaryLabel ?? distinctlyMeta?.subtitle;
+  const distinctlyIconColor = iconColor ?? distinctlyMeta?.color ?? null;
   const isMobile = useIsMobile();
   const isExpanded = useNavigationDrawerExpanded();
   const setIsNavigationDrawerExpanded = useSetAtomState(
@@ -354,9 +378,9 @@ export const NavigationDrawerItem = ({
           )}
 
           {Icon &&
-            (isNonEmptyString(iconColor) ? (
+            (isNonEmptyString(distinctlyIconColor) ? (
               <StyledIcon>
-                <TintedIconTile Icon={Icon} color={iconColor} />
+                <TintedIconTile Icon={Icon} color={distinctlyIconColor} />
               </StyledIcon>
             ) : withIconBackground ? (
               <StyledIcon>
@@ -394,16 +418,16 @@ export const NavigationDrawerItem = ({
               text={
                 <>
                   <StyledItemLabel>{label}</StyledItemLabel>
-                  {secondaryLabel && (
+                  {distinctlySecondaryLabel && (
                     <StyledItemSecondaryLabel>
                       {' · '}
-                      {secondaryLabel}
+                      {distinctlySecondaryLabel}
                     </StyledItemSecondaryLabel>
                   )}
                 </>
               }
               tooltipContent={
-                secondaryLabel ? `${label} · ${secondaryLabel}` : label
+                distinctlySecondaryLabel ? `${label} · ${distinctlySecondaryLabel}` : label
               }
             />
           </StyledLabelParent>
