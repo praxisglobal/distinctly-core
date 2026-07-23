@@ -389,21 +389,7 @@ export const NavigationDrawerItem = ({
           {Icon &&
             (isNonEmptyString(distinctlyIconColor) ? (
               <StyledIcon>
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 9,
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: `${distinctlyIconColor}26`,
-                    boxShadow: `0 0 0 1px ${distinctlyIconColor}22`,
-                  }}
-                >
-                  <Icon size={20} stroke={2} color={distinctlyIconColor} />
-                </div>
+                <TintedIconTile Icon={Icon} color={distinctlyIconColor} size={20} />
               </StyledIcon>
             ) : withIconBackground ? (
               <StyledIcon>
