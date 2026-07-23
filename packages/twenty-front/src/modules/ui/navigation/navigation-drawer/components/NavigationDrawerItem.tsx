@@ -17,7 +17,6 @@ import { Pill, TintedIconTile } from 'twenty-ui/data-display';
 import { type IconComponent, type TablerIconsProps } from 'twenty-ui/icon';
 import {
   AppTooltip,
-  OverflowingTextWithTooltip,
   TooltipDelay,
   TooltipPosition,
 } from 'twenty-ui/surfaces';
@@ -127,7 +126,8 @@ const StyledItem = styled.button<StyledItemProps>`
   display: flex;
   font-family: ${themeCssVariables.font.family};
   font-size: ${themeCssVariables.font.size.md};
-  height: ${themeCssVariables.spacing[7]};
+  min-height: 46px;
+  height: auto;
   margin-top: ${({ indentationLevel }) =>
     indentationLevel === 2 ? '2px' : '0'};
   min-width: 0;
@@ -170,22 +170,31 @@ const StyledItemElementsContainer = styled.div`
 `;
 
 const StyledLabelParent = styled.div`
-  align-items: center;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   flex: 1 1 auto;
   min-width: 0px;
   overflow: hidden;
-  text-overflow: clip;
-  white-space: nowrap;
+  gap: 1px;
 `;
 
 const StyledItemLabel = styled.span`
   font-weight: ${themeCssVariables.font.weight.medium};
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const StyledItemSecondaryLabel = styled.span`
   color: ${themeCssVariables.font.color.light};
   font-weight: ${themeCssVariables.font.weight.regular};
+  font-size: ${themeCssVariables.font.size.sm};
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const StyledKeyBoardShortcut = styled.span`
@@ -292,7 +301,7 @@ export const NavigationDrawerItem = ({
   // distinctly branding: subtitle + icon color per module (shell cosmetics, fork-only)
   const distinctlyMeta = DISTINCTLY_MODULE_META[label];
   const distinctlySecondaryLabel = secondaryLabel ?? distinctlyMeta?.subtitle;
-  const distinctlyIconColor = iconColor ?? distinctlyMeta?.color ?? null;
+  const distinctlyIconColor = distinctlyMeta?.color ?? iconColor ?? null;
   const isMobile = useIsMobile();
   const isExpanded = useNavigationDrawerExpanded();
   const setIsNavigationDrawerExpanded = useSetAtomState(
@@ -414,22 +423,12 @@ export const NavigationDrawerItem = ({
             ))}
 
           <StyledLabelParent>
-            <OverflowingTextWithTooltip
-              text={
-                <>
-                  <StyledItemLabel>{label}</StyledItemLabel>
-                  {distinctlySecondaryLabel && (
-                    <StyledItemSecondaryLabel>
-                      {' · '}
-                      {distinctlySecondaryLabel}
-                    </StyledItemSecondaryLabel>
-                  )}
-                </>
-              }
-              tooltipContent={
-                distinctlySecondaryLabel ? `${label} · ${distinctlySecondaryLabel}` : label
-              }
-            />
+            <StyledItemLabel title={label}>{label}</StyledItemLabel>
+            {distinctlySecondaryLabel && (
+              <StyledItemSecondaryLabel title={distinctlySecondaryLabel}>
+                {distinctlySecondaryLabel}
+              </StyledItemSecondaryLabel>
+            )}
           </StyledLabelParent>
 
           {showStyledSpacer && <StyledSpacer />}
