@@ -33,6 +33,8 @@ const StyledAnimatedContainer = styled.div<{
   isExpanded: boolean;
   isResizing: boolean;
 }>`
+  /* distinctly branding: navy sidebar */
+  background-color: #071222;
   height: 100%;
   max-height: 100%;
   overflow: hidden;
@@ -115,7 +117,7 @@ export const NavigationDrawer = ({
     <>
       <NavigationDrawerWidthEffect />
       <StyledAnimatedContainer
-        className={className}
+        className={`dark ${className ?? ''}`}
         data-click-outside-id={NAVIGATION_DRAWER_CLICK_OUTSIDE_ID}
         isExpanded={isExpanded}
         isResizing={isResizing}
