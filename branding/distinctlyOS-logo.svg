@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="320" viewBox="0 0 1400 320">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4ED8E5"/><stop offset="100%" stop-color="#23C7C8"/></linearGradient></defs>
+<rect width="1400" height="320" fill="#071222"/>
+<rect x="40" y="40" width="40" height="240" fill="url(#g)"/>
+<path d="M80 40 H170 C250 40 300 90 300 160 C300 230 250 280 170 280 H80 Z" fill="url(#g)"/>
+<path d="M80 80 H160 C205 80 235 110 235 160 C235 210 205 240 160 240 H80 Z" fill="#071222"/>
+<text x="300" y="205" font-size="120" font-family="Arial,sans-serif" font-weight="700" fill="#fff">distinctly</text>
+<text x="1040" y="205" font-size="120" font-family="Arial,sans-serif" fill="url(#g)">OS</text>
+</svg>
