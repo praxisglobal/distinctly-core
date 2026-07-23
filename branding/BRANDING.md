@@ -40,3 +40,31 @@ Rebase this branch onto each new upstream tag; keep patches minimal. Pin the ima
 Dockerfile (`packages/twenty-docker/twenty/Dockerfile`, target `twenty`) and pushes to
 `ghcr.io/praxisglobal/distinctly-twenty:v2.22.0-<suffix>`. Front build needs ~8GB RAM — a
 standard runner may OOM; use a larger runner if so. Enable Actions on the fork to run it.
+
+## THE COMPLETE GOAL (full sidebar spec — this is the target, not just teal accents)
+
+Approved mockup: `distinctly/docs/design/distinctlyos-approved-mockup.png`. The fork builds
+toward ALL of this, iteratively:
+
+1. **Dark navy sidebar background** (`#071222`) — the whole drawer, two-tone shell (navy sidebar +
+   light content).
+2. **distinctlyOS logo in the header** — white/teal wordmark on navy.
+3. **Two-line nav items** — label + subtitle ("Sales / Manage sales"). Needs a NavigationDrawerItem
+   patch + a subtitle source (hard-map by module in the fork; the app SDK has no subtitle field).
+4. **Colored icons per module** — each module its own accent color.
+5. **Active state** — teal/green highlight + a left border on the active item.
+6. **Badge** — red count badge (e.g. Today).
+7. **+ New button** — teal.
+8. **Search bar** with ⌘K.
+9. **User profile at bottom** — avatar, name, email, chevron.
+
+### Build order (each step ships + is verified on staging before the next)
+- ✅ **Step 1 — teal accent** (done; proves the CI→staging pipeline).
+- **Step 2 — dark navy sidebar** (background + light text/icons; scope NavigationDrawer to dark on
+  `#071222`). The big visual shift.
+- **Step 3 — logo in header** (may be a workspace-settings upload; else patch the header).
+- **Step 4 — nav item chrome** — two-line subtitles, per-module icon colors, active left-border.
+- **Step 5 — top/bottom chrome** — +New (teal), search ⌘K, user profile block, badges.
+
+Steps 3–5 include the High-effort items (subtitles, badges) from DISTINCTLY-CORE-FORK.md §1; decide
+per item after seeing each build.
