@@ -1,0 +1,71 @@
+name: Build distinctly-twenty image
+
+# Builds the branded Twenty image (with the distinctly/branding theme patches) and pushes it
+# to GHCR. Runs on push to the branding branch or manually. The distinctly deploy repoints
+# docker/compose.yml at the tag this produces (staging first, then prod).
+#
+# ⚠️ The twenty-front build needs ~8GB RAM (NODE_OPTIONS max-old-space-size=8192). A standard
+# GitHub-hosted runner (7GB) may OOM — if the build fails on memory, switch `runs-on` to a
+# larger runner (e.g. a 4- or 8-core GitHub larger runner, or a self-hosted one).
+
+on:
+  push:
+    branches: ['distinctly/branding']
+  workflow_dispatch:
+    inputs:
+      version_suffix:
+        description: 'Image tag suffix (e.g. b1, b2)'
+        required: true
+        default: 'b1'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/praxisglobal/distinctly-twenty
+  # Base Twenty version this fork tracks (must match the twenty-sdk the distinctly app runs).
+  BASE_VERSION: v2.22.0
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout branding branch
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tag
+        id: tag
+        run: |
+          SUFFIX="${{ github.event.inputs.version_suffix || format('gh{0}', github.run_number) }}"
+          echo "tag=${{ env.BASE_VERSION }}-${SUFFIX}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./packages/twenty-docker/twenty/Dockerfile
+          target: twenty
+          push: true
+          build-args: |
+            APP_VERSION=${{ env.BASE_VERSION }}
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "### Built \`${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Repoint distinctly \`docker/compose.yml\` server+worker image to this tag — staging first." >> "$GITHUB_STEP_SUMMARY"

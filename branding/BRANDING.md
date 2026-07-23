@@ -25,3 +25,18 @@ Fork of `twentyhq/twenty` @ `sdk/v2.22.0` (matches the `twentycrm/twenty:v2.22.0
 
 ## Maintenance
 Rebase this branch onto each new upstream tag; keep patches minimal. Pin the image tag deliberately.
+
+## Patch log
+- **v1 (accent → teal):** `SecondaryColors{Light,Dark}.ts` blue1-12 and `Accent{Light,Dark}.ts`
+  accent1-12 retargeted from Radix indigo → Radix teal. This recolors the active nav item, CTAs
+  and accents to teal (brand `#23C7C8`). Low risk; validates the fork→CI-build→staging loop.
+- **NEXT (sidebar → navy):** scope `NavigationDrawer.tsx` to dark colors on a navy `#071222`
+  background (dark sidebar + light content, two-tone shell). Needs the CI-build + staging visual
+  loop to iterate — text/icon legibility on navy requires overriding the sidebar's font/icon
+  colors, not just the background. Do AFTER the accent build proves the pipeline.
+
+## CI build
+`.github/workflows/build-distinctly-image.yaml` builds this branch's image via Twenty's own
+Dockerfile (`packages/twenty-docker/twenty/Dockerfile`, target `twenty`) and pushes to
+`ghcr.io/praxisglobal/distinctly-twenty:v2.22.0-<suffix>`. Front build needs ~8GB RAM — a
+standard runner may OOM; use a larger runner if so. Enable Actions on the fork to run it.
