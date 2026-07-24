@@ -9,6 +9,7 @@ import { AppPath, SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath } from 'twenty-shared/utils';
 
 import { LazyRoute } from '@/app/components/LazyRoute';
+import { DistinctlyRecordIndexRoute } from '@/navigation-menu-item/distinctly/DistinctlyRecordIndexRoute';
 import { SettingsRoutes } from '@/app/components/SettingsRoutes';
 import { WorkspaceAppProviders } from '@/app/components/WorkspaceAppProviders';
 import { VerifyEmail } from '@/auth/components/VerifyEmail';
@@ -19,19 +20,12 @@ import { OnboardingPageLoader } from '@/onboarding/components/OnboardingPageLoad
 import { OnboardingStepLayout } from '@/onboarding/components/OnboardingStepLayout';
 import { OnboardingStepPageLoader } from '@/onboarding/components/OnboardingStepPageLoader';
 import { OnboardingTransitionOutlet } from '@/onboarding/components/OnboardingTransitionOutlet';
-import { RecordIndexSkeletonLoader } from '@/object-record/record-index/components/RecordIndexSkeletonLoader';
 import { AuthFlowLayout } from '@/ui/layout/page/components/AuthFlowLayout';
 import { BlankLayout } from '@/ui/layout/page/components/BlankLayout';
 import { DefaultLayout } from '@/ui/layout/page/components/DefaultLayout';
 import { MainAppLayoutWithSidePanel } from '@/ui/layout/page/components/MainAppLayoutWithSidePanel';
 import { Verify } from '~/pages/onboarding/Verify';
 import { lazyWithPreload } from '~/utils/lazyWithPreload';
-
-const RecordIndexPage = lazy(() =>
-  import('~/pages/object-record/RecordIndexPage').then((module) => ({
-    default: module.RecordIndexPage,
-  })),
-);
 
 const RecordShowPage = lazy(() =>
   import('~/pages/object-record/RecordShowPage').then((module) => ({
@@ -144,11 +138,7 @@ const createWorkspaceAppRouter = (
               <Route path={indexAppPath.getIndexAppPath()} element={<></>} />
               <Route
                 path={AppPath.RecordIndexPage}
-                element={
-                  <LazyRoute fallback={<RecordIndexSkeletonLoader />}>
-                    <RecordIndexPage />
-                  </LazyRoute>
-                }
+                element={<DistinctlyRecordIndexRoute />}
               />
               <Route
                 path={AppPath.RecordShowPage}
