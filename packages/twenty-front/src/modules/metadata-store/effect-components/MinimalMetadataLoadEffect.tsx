@@ -101,7 +101,7 @@ export const MinimalMetadataLoadEffect = () => {
         return;
       }
 
-      const wedgedDescription = `unconverged: [${wedgedEntityKeys.unconvergedEntityKeys.join(', ')}], empty: [${wedgedEntityKeys.emptyCriticalEntityKeys.join(', ')}]`;
+      const wedgedDescription = `unconverged: [${wedgedEntityKeys.unconvergedEntityKeys.join(', ')}], empty: [${wedgedEntityKeys.emptyCriticalEntityKeys.join(', ')}], allNavigationMenuItemsDangling: ${wedgedEntityKeys.hasOnlyDanglingNavigationMenuItems}`;
 
       if (hasAlreadySelfHealed()) {
         logError(
