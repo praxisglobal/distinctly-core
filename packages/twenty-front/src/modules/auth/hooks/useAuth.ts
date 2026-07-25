@@ -28,7 +28,7 @@ import { currentWorkspaceMemberState } from '@/auth/states/currentWorkspaceMembe
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { returnToPathState } from '@/auth/states/returnToPathState';
 import { tokenPairState } from '@/auth/states/tokenPairState';
-import { clearSessionLocalStorageKeys } from '@/auth/utils/clearSessionLocalStorageKeys';
+import { clearAllSessionLocalStorageKeys } from '@/auth/utils/clearAllSessionLocalStorageKeys';
 import { broadcastSignOutToOtherTabs } from '@/auth/utils/crossTabSignOut';
 import { isValidReturnToPath } from '@/auth/utils/isValidReturnToPath';
 import { isNonEmptyString } from '@sniptt/guards';
@@ -120,9 +120,17 @@ export const useAuth = () => {
     store.set(currentWorkspaceState.atom, null);
     store.set(currentWorkspaceMemberState.atom, null);
     store.set(currentUserWorkspaceState.atom, null);
-    clearSessionLocalStorageKeys();
     setLastAuthenticateWorkspaceDomain(null);
-    window.location.assign(AppPath.SignInUp);
+
+    // distinctly branding: sign-out used to clear localStorage keys only, so the
+    // IndexedDB-persisted metadata store (objects, views, nav items, page layouts)
+    // survived it. A profile whose store had gone stale after an app `apply` then
+    // rendered an empty sidebar forever — signing out and back in could not fix it,
+    // and neither could a hard refresh; only clearing site data or Incognito did.
+    // Clear the whole store here, and only navigate once the clear has landed.
+    void clearAllSessionLocalStorageKeys().finally(() => {
+      window.location.assign(AppPath.SignInUp);
+    });
   }, [store, setLastAuthenticateWorkspaceDomain]);
 
   const handleSetAuthTokens = useCallback(

@@ -3,13 +3,42 @@ import { useIsOnAuthOrOnboardingPage } from '@/auth/hooks/useIsOnAuthOrOnboardin
 import { currentUserState } from '@/auth/states/currentUserState';
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { isCurrentUserLoadedState } from '@/auth/states/isCurrentUserLoadedState';
+import { clearAllSessionLocalStorageKeys } from '@/auth/utils/clearAllSessionLocalStorageKeys';
 import { useLoadMinimalMetadata } from '@/metadata-store/hooks/useLoadMinimalMetadata';
 import { useLoadStaleMetadataEntities } from '@/metadata-store/hooks/useLoadStaleMetadataEntities';
 import { metadataLoadedVersionState } from '@/metadata-store/states/metadataLoadedVersionState';
+import { metadataStoreState } from '@/metadata-store/states/metadataStoreState';
+import {
+  getWedgedMetadataEntityKeys,
+  hasWedgedMetadataEntityKeys,
+} from '@/metadata-store/utils/getWedgedMetadataEntityKeys';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { useStore } from 'jotai';
 import { useEffect, useState } from 'react';
 import { isDefined } from 'twenty-shared/utils';
 import { isWorkspaceProvisioned } from 'twenty-shared/workspace';
+import { logError } from '~/utils/logError';
+
+// distinctly branding: set once per tab so a store that stays wedged after the
+// reload cannot put the app in a reload loop.
+const METADATA_SELF_HEAL_SESSION_KEY = 'distinctly:metadata-store-self-healed';
+
+const hasAlreadySelfHealed = (): boolean => {
+  try {
+    return sessionStorage.getItem(METADATA_SELF_HEAL_SESSION_KEY) === 'true';
+  } catch {
+    // sessionStorage unavailable — never self-heal rather than risk a reload loop
+    return true;
+  }
+};
+
+const markAsSelfHealed = (): void => {
+  try {
+    sessionStorage.setItem(METADATA_SELF_HEAL_SESSION_KEY, 'true');
+  } catch {
+    // handled by hasAlreadySelfHealed returning true in the same situation
+  }
+};
 
 export const MinimalMetadataLoadEffect = () => {
   const hasAccessTokenPair = useHasAccessTokenPair();
@@ -21,6 +50,7 @@ export const MinimalMetadataLoadEffect = () => {
 
   const { loadMinimalMetadata } = useLoadMinimalMetadata();
   const { loadStaleMetadataEntities } = useLoadStaleMetadataEntities();
+  const store = useStore();
 
   const isOnAuthOrOnboardingPage = useIsOnAuthOrOnboardingPage();
 
@@ -41,6 +71,8 @@ export const MinimalMetadataLoadEffect = () => {
       return;
     }
 
+    const isFirstLoadOfThisTab = lastLoadedVersion === -1;
+
     setLastLoadedVersion(metadataLoadedVersion);
 
     const performLoad = async () => {
@@ -49,6 +81,48 @@ export const MinimalMetadataLoadEffect = () => {
       if (result?.staleEntityKeys && result.staleEntityKeys.length > 0) {
         await loadStaleMetadataEntities(result.staleEntityKeys);
       }
+
+      // distinctly branding: the metadata store is persisted in IndexedDB and
+      // nothing in the app clears it, so a store that cannot converge stays
+      // broken through refreshes and sign-out — the app renders an empty sidebar
+      // and only Incognito or clearing site data recovers it. Detect that state
+      // after the boot load and clear the store once, then reload.
+      // Only on the tab's first load: later loads run while the user edits
+      // metadata in Settings, where 'draft-pending' is a legitimate state.
+      if (!isFirstLoadOfThisTab) {
+        return;
+      }
+
+      const wedgedEntityKeys = getWedgedMetadataEntityKeys((key) =>
+        store.get(metadataStoreState.atomFamily(key)),
+      );
+
+      if (!hasWedgedMetadataEntityKeys(wedgedEntityKeys)) {
+        return;
+      }
+
+      const wedgedDescription = `unconverged: [${wedgedEntityKeys.unconvergedEntityKeys.join(', ')}], empty: [${wedgedEntityKeys.emptyCriticalEntityKeys.join(', ')}]`;
+
+      if (hasAlreadySelfHealed()) {
+        logError(
+          new Error(
+            `distinctly: metadata store still wedged after self-heal (${wedgedDescription}) — clear site data for this domain`,
+          ),
+        );
+
+        return;
+      }
+
+      markAsSelfHealed();
+      logError(
+        new Error(
+          `distinctly: wedged metadata store detected (${wedgedDescription}) — clearing the persisted store and reloading`,
+        ),
+      );
+
+      await clearAllSessionLocalStorageKeys();
+
+      window.location.reload();
     };
 
     performLoad();
@@ -60,6 +134,7 @@ export const MinimalMetadataLoadEffect = () => {
     metadataLoadedVersion,
     loadMinimalMetadata,
     loadStaleMetadataEntities,
+    store,
   ]);
 
   return null;

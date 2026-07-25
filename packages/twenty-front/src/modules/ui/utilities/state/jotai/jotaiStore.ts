@@ -4,7 +4,7 @@ import { createStore } from 'jotai';
 export let jotaiStore = createStore();
 
 export const resetJotaiStore = () => {
-  clearAllSessionLocalStorageKeys();
+  void clearAllSessionLocalStorageKeys();
 
   jotaiStore = createStore();
 

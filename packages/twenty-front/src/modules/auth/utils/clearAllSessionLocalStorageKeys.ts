@@ -12,8 +12,12 @@ const getMetadataStoreKeys = (): string[] =>
     (key: MetadataEntityKey) => `${METADATA_STORE_KEY_PREFIX}${key}`,
   );
 
-export const clearAllSessionLocalStorageKeys = () => {
+// distinctly branding: returns the IndexedDB clear so callers that navigate right
+// after (sign-out, self-heal reload) can wait for it — a fire-and-forget clear can
+// be cut short by the navigation, leaving the stale metadata store in place.
+export const clearAllSessionLocalStorageKeys = (): Promise<void> => {
   clearSessionLocalStorageKeys();
-  void clearMetadataStoreStorage();
   safeRemoveLocalStorageItems(getMetadataStoreKeys());
+
+  return clearMetadataStoreStorage();
 };
