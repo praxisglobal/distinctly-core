@@ -40,6 +40,22 @@ const markAsSelfHealed = (): void => {
   }
 };
 
+// distinctly branding: sessionStorage outlives a reload — including a hard
+// refresh — and dies only with the tab. Without this reset the single self-heal
+// a tab is allowed is spent forever: a tab that healed once and was later
+// re-wedged by an `apply` can never heal again, and the reflex fix
+// (Ctrl/Cmd+Shift+R) is precisely the action that does not clear the flag.
+// Clearing it after a load that came back healthy keeps the reload-loop guard —
+// a store still wedged on the very next load never reaches here — while letting
+// a tab that genuinely recovered heal again if it breaks later.
+const clearSelfHealedMark = (): void => {
+  try {
+    sessionStorage.removeItem(METADATA_SELF_HEAL_SESSION_KEY);
+  } catch {
+    // nothing to do — a tab without sessionStorage never self-heals anyway
+  }
+};
+
 export const MinimalMetadataLoadEffect = () => {
   const hasAccessTokenPair = useHasAccessTokenPair();
   const isCurrentUserLoaded = useAtomStateValue(isCurrentUserLoadedState);
@@ -98,10 +114,12 @@ export const MinimalMetadataLoadEffect = () => {
       );
 
       if (!hasWedgedMetadataEntityKeys(wedgedEntityKeys)) {
+        clearSelfHealedMark();
+
         return;
       }
 
-      const wedgedDescription = `unconverged: [${wedgedEntityKeys.unconvergedEntityKeys.join(', ')}], empty: [${wedgedEntityKeys.emptyCriticalEntityKeys.join(', ')}], allNavigationMenuItemsDangling: ${wedgedEntityKeys.hasOnlyDanglingNavigationMenuItems}`;
+      const wedgedDescription = `unconverged: [${wedgedEntityKeys.unconvergedEntityKeys.join(', ')}], empty: [${wedgedEntityKeys.emptyCriticalEntityKeys.join(', ')}], allNavigationMenuItemsDangling: ${wedgedEntityKeys.hasOnlyDanglingNavigationMenuItems}, noRenderableNavigationMenuItems: ${wedgedEntityKeys.hasNoRenderableNavigationMenuItems}`;
 
       if (hasAlreadySelfHealed()) {
         logError(
