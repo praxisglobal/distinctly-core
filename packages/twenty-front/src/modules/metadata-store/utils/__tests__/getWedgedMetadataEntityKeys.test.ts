@@ -138,4 +138,114 @@ describe('getWedgedMetadataEntityKeys', () => {
 
     expect(hasWedgedMetadataEntityKeys(wedged)).toBe(false);
   });
+
+  // The store behind the empty-sidebar report: it held only the standard-object
+  // nav items the branding filter hides, so every collection looked populated,
+  // nothing dangled and nothing was draft-pending — while the sidebar rendered
+  // nothing at all.
+  it('should report a store whose only nav items are backed by hidden standard objects', () => {
+    const wedged = getWedgedMetadataEntityKeys(
+      createGetEntry({
+        navigationMenuItems: {
+          current: [
+            { id: 'nav-1', type: 'OBJECT', targetObjectMetadataId: 'task' },
+            { id: 'nav-2', type: 'OBJECT', targetObjectMetadataId: 'note' },
+            { id: 'nav-3', type: 'OBJECT', targetObjectMetadataId: 'dashboard' },
+            {
+              id: 'nav-4',
+              type: 'OBJECT',
+              targetObjectMetadataId: 'opportunity',
+            },
+          ],
+          draft: [],
+          status: 'up-to-date',
+        },
+        objectMetadataItems: {
+          current: [
+            { id: 'task', nameSingular: 'task' },
+            { id: 'note', nameSingular: 'note' },
+            { id: 'dashboard', nameSingular: 'dashboard' },
+            { id: 'opportunity', nameSingular: 'opportunity' },
+          ],
+          draft: [],
+          status: 'up-to-date',
+        },
+      }),
+    );
+
+    expect(wedged.unconvergedEntityKeys).toEqual([]);
+    expect(wedged.emptyCriticalEntityKeys).toEqual([]);
+    expect(wedged.hasOnlyDanglingNavigationMenuItems).toBe(false);
+    expect(wedged.hasNoRenderableNavigationMenuItems).toBe(true);
+    expect(hasWedgedMetadataEntityKeys(wedged)).toBe(true);
+  });
+
+  it('should not report a store that also holds a resolvable page layout entry', () => {
+    const wedged = getWedgedMetadataEntityKeys(
+      createGetEntry({
+        navigationMenuItems: {
+          current: [
+            { id: 'nav-1', type: 'OBJECT', targetObjectMetadataId: 'task' },
+            { id: 'nav-2', type: 'PAGE_LAYOUT', pageLayoutId: 'page-layout-1' },
+          ],
+          draft: [],
+          status: 'up-to-date',
+        },
+        objectMetadataItems: {
+          current: [{ id: 'task', nameSingular: 'task' }],
+          draft: [],
+          status: 'up-to-date',
+        },
+        pageLayouts: {
+          current: [{ id: 'page-layout-1' }],
+          draft: [],
+          status: 'up-to-date',
+        },
+      }),
+    );
+
+    expect(wedged.hasNoRenderableNavigationMenuItems).toBe(false);
+    expect(hasWedgedMetadataEntityKeys(wedged)).toBe(false);
+  });
+
+  // PAGE_LAYOUT items are absent from the dangling check, and they are the only
+  // entries distinctly's own sidebar has, so a store whose pageLayouts went
+  // stale renders nothing while looking healthy to every other check.
+  it('should report page layout nav items pointing at page layouts the store lacks', () => {
+    const wedged = getWedgedMetadataEntityKeys(
+      createGetEntry({
+        navigationMenuItems: {
+          current: [
+            {
+              id: 'nav-1',
+              type: 'PAGE_LAYOUT',
+              pageLayoutId: 'page-layout-added-by-the-apply',
+            },
+          ],
+          draft: [],
+          status: 'up-to-date',
+        },
+        pageLayouts: {
+          current: [{ id: 'some-other-page-layout' }],
+          draft: [],
+          status: 'up-to-date',
+        },
+      }),
+    );
+
+    expect(wedged.hasOnlyDanglingNavigationMenuItems).toBe(false);
+    expect(wedged.hasNoRenderableNavigationMenuItems).toBe(true);
+    expect(hasWedgedMetadataEntityKeys(wedged)).toBe(true);
+  });
+
+  it('should not double-report an empty nav item collection as unrenderable', () => {
+    const wedged = getWedgedMetadataEntityKeys(
+      createGetEntry({
+        navigationMenuItems: { current: [], draft: [], status: 'up-to-date' },
+      }),
+    );
+
+    expect(wedged.emptyCriticalEntityKeys).toEqual(['navigationMenuItems']);
+    expect(wedged.hasNoRenderableNavigationMenuItems).toBe(false);
+  });
 });
