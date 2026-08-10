@@ -3,6 +3,12 @@ export {
   FrontComponentInputFocusContext,
   type SetEditableFocused,
 } from './host/contexts/FrontComponentInputFocusContext';
+export {
+  FrontComponentFileUploadContext,
+  type FrontComponentUploadRequest,
+  type FrontComponentUploadResult,
+  type UploadAttachmentFromFrontComponent,
+} from './host/contexts/FrontComponentFileUploadContext';
 export { componentRegistry } from './host/generated/host-component-registry';
 export { FrontComponentConfirmationModalResultEffect } from './remote/components/FrontComponentConfirmationModalResultEffect';
 export { FrontComponentErrorEffect } from './remote/components/FrontComponentErrorEffect';

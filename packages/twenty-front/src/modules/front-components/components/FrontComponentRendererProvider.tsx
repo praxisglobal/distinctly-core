@@ -1,7 +1,11 @@
 import { useCallback } from 'react';
-import { FrontComponentInputFocusContext } from 'twenty-front-component-renderer';
+import {
+  FrontComponentFileUploadContext,
+  FrontComponentInputFocusContext,
+} from 'twenty-front-component-renderer';
 
 import { FrontComponentInputFocusCleanupEffect } from '@/front-components/components/FrontComponentInputFocusCleanupEffect';
+import { useFrontComponentAttachmentUpload } from '@/front-components/hooks/useFrontComponentAttachmentUpload';
 import { FrontComponentInstanceContext } from '@/front-components/states/contexts/FrontComponentInstanceContext';
 import { usePushFocusItemToFocusStack } from '@/ui/utilities/focus/hooks/usePushFocusItemToFocusStack';
 import { useRemoveFocusItemFromFocusStackById } from '@/ui/utilities/focus/hooks/useRemoveFocusItemFromFocusStackById';
@@ -18,6 +22,11 @@ export const FrontComponentRendererProvider = ({
 }: FrontComponentRendererProviderProps) => {
   const focusId = `front-component-input-focus-${frontComponentId}`;
 
+  // Host-side attachment upload. Front components run in a Web Worker over Remote DOM and can
+  // never receive a real File; this hands the host's genuine one to Twenty's own uploader and
+  // returns only serialisable metadata. Injected the same way setEditableFocused is, so the
+  // renderer package stays independent of this application.
+  const uploadAttachment = useFrontComponentAttachmentUpload();
   const { pushFocusItemToFocusStack } = usePushFocusItemToFocusStack();
   const { removeFocusItemFromFocusStackById } =
     useRemoveFocusItemFromFocusStackById();
@@ -47,8 +56,10 @@ export const FrontComponentRendererProvider = ({
       value={{ instanceId: frontComponentId }}
     >
       <FrontComponentInputFocusContext.Provider value={setEditableFocused}>
-        <FrontComponentInputFocusCleanupEffect focusId={focusId} />
-        {children}
+        <FrontComponentFileUploadContext.Provider value={uploadAttachment}>
+          <FrontComponentInputFocusCleanupEffect focusId={focusId} />
+          {children}
+        </FrontComponentFileUploadContext.Provider>
       </FrontComponentInputFocusContext.Provider>
     </FrontComponentInstanceContext.Provider>
   );

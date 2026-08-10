@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 
+import { FrontComponentFileUploadContext } from '@/host/contexts/FrontComponentFileUploadContext';
 import { FrontComponentInputFocusContext } from '@/host/contexts/FrontComponentInputFocusContext';
+import { createFileUploadChangeHandler, isFileUploadInput } from '@/host/utils/createFileUploadChangeHandler';
 import { createCaretPreservingElement } from '@/host/utils/createCaretPreservingElement';
 import { filterProps } from '@/host/utils/filterProps';
 import { isTextLikeInputType } from '@/host/utils/isTextLikeInputType';
@@ -31,7 +33,23 @@ export const createHtmlHostWrapper = (htmlTag: string) => {
 
   return ({ children, ...props }: WrapperProps) => {
     const setEditableFocused = useContext(FrontComponentInputFocusContext);
+    const uploadAttachment = useContext(FrontComponentFileUploadContext);
     const reactProps = filterProps(props, htmlTag);
+
+    // An opted-in <input type="file"> uploads on the HOST, where the File is real. Everything
+    // else about the element is unchanged. Without this the picked file reaches the worker as
+    // {name, size, type, lastModified} — serializeEvent cannot carry bytes — and no code in the
+    // worker can recover them, which is why three attempts to read them there failed.
+    if (isFileUploadInput(htmlTag, props)) {
+      return React.createElement(htmlTag, {
+        ...reactProps,
+        onChange: createFileUploadChangeHandler(
+          reactProps.onChange,
+          uploadAttachment,
+          props,
+        ),
+      });
+    }
 
     const forcedProps: Record<string, unknown> | undefined = isIframe
       ? { sandbox: sanitizeIframeSandbox(reactProps.sandbox) }
