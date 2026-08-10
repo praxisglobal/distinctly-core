@@ -31,9 +31,15 @@ export type FrontComponentUploadRequest = {
   targetRecordId?: string;
 };
 
-/** What the front component gets back: serialisable, no File, no bytes. */
+/**
+ * What the front component gets back: serialisable, no File, no bytes.
+ *
+ * 'uploading' is emitted BEFORE the upload starts. Without it a front component has no way to show
+ * progress at all: the host does the work, so by the time the component's onChange fires the upload
+ * has already finished, and the user sees nothing between picking a file and the list refreshing.
+ */
 export type FrontComponentUploadResult = {
-  status: 'uploaded' | 'error';
+  status: 'uploading' | 'uploaded' | 'error';
   attachmentId?: string;
   fileId?: string;
   url?: string;

@@ -80,6 +80,11 @@ export const createFileUploadChangeHandler =
       | string
       | undefined;
 
+    // Tell the component the upload has STARTED, before awaiting. The host owns the work, so this
+    // is the only moment a front component can learn to show "uploading…" — otherwise its first
+    // news of the file is that the upload already finished.
+    callRemote({ status: 'uploading', name, size, type });
+
     try {
       const result = await uploadAttachment({
         file,
